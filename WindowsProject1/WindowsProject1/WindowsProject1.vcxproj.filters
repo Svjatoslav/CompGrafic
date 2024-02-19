@@ -53,11 +53,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="VertexShader.hlsl">
-      <Filter>Файлы заголовков</Filter>
-    </FxCompile>
-    <FxCompile Include="PixelShader.hlsl">
-      <Filter>Файлы заголовков</Filter>
-    </FxCompile>
+    <None Include="PixelShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="VertexShader.hlsl" />
   </ItemGroup>
 </Project>
