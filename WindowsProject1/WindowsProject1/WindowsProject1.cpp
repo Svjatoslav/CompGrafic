@@ -5,7 +5,7 @@
 #include "WindowsProject1.h"
 #include <windows.h>
 #include <directxcolors.h>
-
+#include <memory>
 #include "Render.h"
 
 using namespace DirectX;
@@ -53,7 +53,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
     else
     {
-      pRender->render();
+    if (pRender->getState())
+        pRender->render();
     }
   }
   pRender->deviceCleanup();
@@ -87,15 +88,11 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
     return E_FAIL;
   }
 
-  pRender = new Render();
-  if (!pRender->deviceInit(hWnd)) {
-    delete pRender;
-    return E_FAIL;
-  }
 
   ShowWindow(hWnd, nCmdShow);
   UpdateWindow(hWnd);
-
+  SetForegroundWindow(hWnd);
+  SetFocus(hWnd);
   {
     RECT rc;
     rc.left = 0;
@@ -107,6 +104,13 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
 
     MoveWindow(hWnd, 100, 100, rc.right - rc.left, rc.bottom - rc.top, TRUE);
   }
+
+
+    pRender = new Render();
+    if (!pRender->deviceInit(hInstance, hWnd, new Camera, new Input(hInstance, hWnd, WindowWidth, WindowHeight))) {
+        delete pRender;
+        return E_FAIL;
+    }
 
   return TRUE;
 }
