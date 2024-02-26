@@ -37,7 +37,7 @@ HRESULT Render::initScene() {
     };
 
     static const USHORT Indices[] = {
-        0, 2, 1,
+
         3, 1, 0,
         2, 1, 3,
         0, 5, 4,
