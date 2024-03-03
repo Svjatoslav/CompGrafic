@@ -23,6 +23,6 @@ public:
     };
 
     void getState();
-    void getMouseState(float dx, float dy, float wheel);
+    void getMouseState(float dx, float dy);
     void getView(XMMATRIX& viewMatrix) { viewMatrix = m_viewMatrix; };
 };

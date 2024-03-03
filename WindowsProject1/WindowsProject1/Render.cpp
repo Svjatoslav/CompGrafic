@@ -170,9 +170,9 @@ HRESULT Render::initScene() {
 }
 
 
-bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInput) {
+bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera) {
     m_pCamera = pCamera;
-    m_pInput = pInput;
+    /*m_pInput = pInput;*/
     HRESULT hr;
 
     IDXGIFactory* pFactory = nullptr;
@@ -250,10 +250,10 @@ bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInp
             hr = S_FALSE;
     }
 
-    if (SUCCEEDED(hr)) {
+    /*if (SUCCEEDED(hr)) {
         if (!m_pInput)
             hr = S_FALSE;
-    }
+    }*/
 
     if (FAILED(hr)) {
         deviceCleanup();
@@ -262,17 +262,17 @@ bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInp
     return SUCCEEDED(hr);
 }
 
-void Render::inputMovement() {
-    XMFLOAT3 mouseMove = m_pInput->getMouseState();
-    m_pCamera->getMouseState(mouseMove.x, mouseMove.y, mouseMove.z);
-}
+//void Render::inputMovement() {
+////    XMFLOAT3 mouseMove = m_pInput->getMouseState();
+//    m_pCamera->getMouseState(mouseMove.x, mouseMove.y, mouseMove.z);
+//}
 
 bool Render::getState() {
     HRESULT hr = S_OK;
     m_pCamera->getState();
-    m_pInput->getState();
+    /*m_pInput->getState();
 
-    inputMovement();
+    inputMovement();*/
 
     static float t = 0.0f;
     static ULONGLONG timeStart = 0;
@@ -370,6 +370,8 @@ void Render::deviceCleanup() {
     SAFE_RELEASE(m_pInputLayout);
 }
 
+
+
 bool Render::winResize(UINT width, UINT height) {
     if (width != m_width || height != m_height) {
         SAFE_RELEASE(m_pBackBufferRTV);
@@ -382,9 +384,34 @@ bool Render::winResize(UINT width, UINT height) {
             m_height = height;
 
             hr = setupBackBuffer();
-            m_pInput->resize(width, height);
+            //m_pInput->resize(width, height);
         }
         return SUCCEEDED(hr);
     }
     return true;
+}
+
+
+
+void Render::MouseButtonDown(WPARAM wParam, LPARAM lParam)
+{
+    _mouseButtonPressed = true;
+    _prevMousePos.x = GET_X_LPARAM(lParam);
+    _prevMousePos.y = GET_Y_LPARAM(lParam);
+}
+
+void Render::MouseButtonUp(WPARAM wParam, LPARAM lParam)
+{
+    _mouseButtonPressed = false;
+    _prevMousePos.x = GET_X_LPARAM(lParam);
+    _prevMousePos.y = GET_Y_LPARAM(lParam);
+}
+
+void Render::MouseMoved(WPARAM wParam, LPARAM lParam)
+{
+    if (_mouseButtonPressed) {
+        m_pCamera->getMouseState((GET_X_LPARAM(lParam) - _prevMousePos.x) / 100.0f, (GET_Y_LPARAM(lParam) - _prevMousePos.y) / 100.0f);
+        _prevMousePos.x = GET_X_LPARAM(lParam);
+        _prevMousePos.y = GET_Y_LPARAM(lParam);
+    }
 }

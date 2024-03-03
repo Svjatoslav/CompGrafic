@@ -107,7 +107,7 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow) {
 
 
     pRender = new Render();
-    if (!pRender->deviceInit(hInstance, hWnd, new Camera, new Input(hInstance, hWnd, WindowWidth, WindowHeight))) {
+    if (!pRender->deviceInit(hInstance, hWnd, new Camera)) {
         delete pRender;
         return E_FAIL;
     }
@@ -212,6 +212,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_DESTROY:
         PostQuitMessage(0);
+        break;
+
+    case WM_LBUTTONDOWN:
+        pRender->MouseButtonDown(wParam, lParam);
+        break;
+
+    case WM_LBUTTONUP:
+        pRender->MouseButtonUp(wParam, lParam);
+        break;
+
+    case WM_MOUSEMOVE:
+        pRender->MouseMoved(wParam, lParam);
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);

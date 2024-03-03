@@ -159,7 +159,6 @@ copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"</Command>
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="input.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -167,7 +166,6 @@ copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"</Command>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
-    <ClCompile Include="input.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="WindowsProject1.cpp" />
   </ItemGroup>

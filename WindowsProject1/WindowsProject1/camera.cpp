@@ -24,12 +24,9 @@ void Camera::getState() {
     );
 }
 
-void Camera::getMouseState(float dx, float dy, float wheel) {
+void Camera::getMouseState(float dx, float dy) {
     m_phi += dx / 100.0f;
     m_theta += dy / 100.0f;
     m_theta = min(max(m_theta, -XM_PIDIV2), XM_PIDIV2);
-    m_dist -= wheel / 100.0f;
-    if (m_dist < 1.0f) {
-        m_dist = 1.0f;
-    }
+   
 }

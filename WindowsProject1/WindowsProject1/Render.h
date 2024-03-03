@@ -5,7 +5,7 @@
 #include <directxmath.h>
 #include <string>
 #include "camera.h"
-#include "input.h"
+#include <windowsx.h>
 
 struct Vertex {
 	float x, y, z;
@@ -39,20 +39,24 @@ private:
 	ID3D11RasterizerState* m_pRasterizerState = nullptr;
 
 	Camera* m_pCamera = nullptr;
-	Input* m_pInput = nullptr;
+	bool _mouseButtonPressed = false;
+	POINT _prevMousePos;
 
 	UINT m_width = 0;
 	UINT m_height = 0;
 
 	HRESULT setupBackBuffer();
 	HRESULT initScene();
-	void inputMovement();
+	/*void inputMovement();*/
 
 public:
-	bool deviceInit(HWND hWnd);
+	/*bool deviceInit(HWND hWnd);*/
 	bool render();
-	bool deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInput);
+	bool deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera);
 	bool getState();
 	void deviceCleanup();
 	bool winResize(UINT width, UINT height);
+	void MouseButtonDown(WPARAM wParam, LPARAM lParam);
+	void MouseButtonUp(WPARAM wParam, LPARAM lParam);
+	void MouseMoved(WPARAM wParam, LPARAM lParam);
 };
