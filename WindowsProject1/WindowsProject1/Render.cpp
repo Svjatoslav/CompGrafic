@@ -25,36 +25,50 @@ HRESULT Render::initScene() {
     HRESULT hr = S_OK;
 
     static const Vertex Vertices[] = {
-    
-            { -1.0f, 1.0f, -1.0f, RGB(0, 0, 255) },
-            { 1.0f, 1.0f, -1.0f, RGB(0, 255, 0) },
-            { 1.0f, 1.0f, 1.0f, RGB(0, 255, 255) },
-            { -1.0f, 1.0f, 1.0f, RGB(255, 0, 0) },
-            { -1.0f, -1.0f, -1.0f, RGB(255, 0, 255) },
-            { 1.0f, -1.0f, -1.0f, RGB(255, 255, 0) },
-            { 1.0f, -1.0f, 1.0f, RGB(255, 255, 255) },
-            { -1.0f, -1.0f, 1.0f, RGB(0, 0, 0) }
+    { -0.5, -0.5,  0.5, 0, 1 },
+    { 0.5, -0.5,  0.5, 1, 1 },
+    { 0.5, -0.5, -0.5, 1, 0 },
+    { -0.5, -0.5, -0.5, 0, 0 },
+
+    { -0.5,  0.5, -0.5, 0, 1 },
+    { 0.5,  0.5, -0.5, 1, 1 },
+    { 0.5,  0.5,  0.5, 1, 0 },
+    { -0.5,  0.5,  0.5, 0, 0 },
+
+    { 0.5, -0.5, -0.5, 0, 1 },
+    { 0.5, -0.5,  0.5, 1, 1 },
+    { 0.5,  0.5,  0.5, 1, 0 },
+    { 0.5,  0.5, -0.5, 0, 0 },
+
+    { -0.5, -0.5,  0.5, 0, 1 },
+    { -0.5, -0.5, -0.5, 1, 1 },
+    { -0.5,  0.5, -0.5, 1, 0 },
+    { -0.5,  0.5,  0.5, 0, 0 },
+
+    { 0.5, -0.5,  0.5, 0, 1 },
+    { -0.5, -0.5,  0.5, 1, 1 },
+    { -0.5,  0.5,  0.5, 1, 0 },
+    { 0.5,  0.5,  0.5, 0, 0 },
+
+    { -0.5, -0.5, -0.5, 0, 1 },
+    { 0.5, -0.5, -0.5, 1, 1 },
+    { 0.5,  0.5, -0.5, 1, 0 },
+    { -0.5,  0.5, -0.5, 0, 0 }
     };
 
     static const USHORT Indices[] = {
 
-        3, 1, 0,
-        2, 1, 3,
-        0, 5, 4,
-        1, 5, 0,
-        3, 4, 7,
-        0, 4, 3,
-        1, 6, 5,
-        2, 6, 1,
-        2, 7, 6,
-        3, 7, 2,
-        6, 4, 5,
-        7, 4, 6,
+    0, 2, 1, 0, 3, 2,
+        4, 6, 5, 4, 7, 6,
+        8, 10, 9, 8, 11, 10,
+        12, 14, 13, 12, 15, 14,
+        16, 18, 17, 16, 19, 18,
+        20, 22, 21, 20, 23, 22
     };
 
     static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
       {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-      {"COLOR", 0,  DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
+     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
 
 
     if (SUCCEEDED(hr)) {
@@ -166,6 +180,31 @@ HRESULT Render::initScene() {
         hr = m_pDevice->CreateRasterizerState(&desc, &m_pRasterizerState);
         assert(SUCCEEDED(hr));
     }
+    try {
+        m_textureArray.emplace_back(m_pDevice, m_pDeviceContext, L"myface.dds");
+    }
+    catch (...) {
+        return E_FAIL;
+    }
+
+    if (SUCCEEDED(hr)) {
+        D3D11_SAMPLER_DESC desc = {};
+
+        desc.Filter = D3D11_FILTER_ANISOTROPIC;
+        desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.MinLOD = -D3D11_FLOAT32_MAX;
+        desc.MaxLOD = D3D11_FLOAT32_MAX;
+        desc.MipLODBias = 0.0f;
+        desc.MaxAnisotropy = 16;
+        desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+        desc.BorderColor[0] = desc.BorderColor[1] = desc.BorderColor[2] = desc.BorderColor[3] = 1.0f;
+
+        hr = m_pDevice->CreateSamplerState(&desc, &m_pSampler);
+        assert(SUCCEEDED(hr));
+    }
+
     return hr;
 }
 
@@ -209,6 +248,7 @@ bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInp
         assert(level == D3D_FEATURE_LEVEL_11_0);
         assert(SUCCEEDED(hr));
     }
+
     //create swapchain
     if (SUCCEEDED(hr)) {
         RECT rc;
@@ -254,23 +294,107 @@ bool Render::deviceInit(HINSTANCE hinst, HWND hWnd, Camera* pCamera, Input* pInp
         if (!m_pInput)
             hr = S_FALSE;
     }
+    if (SUCCEEDED(hr)) {
+        if (!m_pCubeMap)
+            hr = S_FALSE;
+    }
 
     if (FAILED(hr)) {
         deviceCleanup();
     }
-
+    m_pCubeMap = new CubeMap(m_pDevice, m_pDeviceContext, m_width, m_height, 10, 10);
     return SUCCEEDED(hr);
 }
 
+
+void Render::MoveForward(bool keydown) {
+    if (keydown) {
+        m_forwardSpeed += m_frameMove * 1.0f;
+        if (m_forwardSpeed > m_frameMove * 50.0f) {
+            m_forwardSpeed = m_frameMove * 50.0f;
+        }
+    }
+    else {
+        m_forwardSpeed -= m_frameMove * 0.5f;
+        if (m_forwardSpeed < 0.0f) {
+            m_forwardSpeed = 0.0f;
+        }
+    }
+
+    m_cubePos.x += m_forwardSpeed;
+
+}
+
+void Render::MoveBackward(bool keydown) {
+    if (keydown) {
+        m_backwardSpeed += m_frameMove * 1.0f;
+        if (m_backwardSpeed > (m_frameMove * 50.0f)) {
+            m_backwardSpeed = m_frameMove * 50.0f;
+        }
+    }
+    else {
+        m_backwardSpeed -= m_frameMove * 0.5f;
+        if (m_backwardSpeed < 0.0f) {
+            m_backwardSpeed = 0.0f;
+        }
+    }
+
+    m_cubePos.x -= m_backwardSpeed;
+}
+
+void Render::MoveLeft(bool keydown) {
+
+    if (keydown) {
+        m_leftSpeed += m_frameMove * 1.0f;
+        if (m_leftSpeed > (m_frameMove * 50.0f)) {
+            m_leftSpeed = m_frameMove * 50.0f;
+        }
+    }
+    else {
+        m_leftSpeed -= m_frameMove * 0.5f;
+        if (m_leftSpeed < 0.0f) {
+            m_leftSpeed = 0.0f;
+        }
+    }
+
+    m_cubePos.z += m_leftSpeed;
+}
+
+void Render::MoveRight(bool keydown) {
+    if (keydown) {
+        m_rightSpeed += m_frameMove * 1.0f;
+        if (m_rightSpeed > (m_frameMove * 50.0f)) {
+            m_rightSpeed = m_frameMove * 50.0f;
+        }
+    }
+    else {
+        m_rightSpeed -= m_frameMove * 0.5f;
+        if (m_rightSpeed < 0.0f) {
+            m_rightSpeed = 0.0f;
+        }
+    }
+
+    m_cubePos.z -= m_rightSpeed;
+};
+
 void Render::inputMovement() {
-    XMFLOAT3 mouseMove = m_pInput->getMouseState();
-    m_pCamera->getMouseState(mouseMove.x, mouseMove.y, mouseMove.z);
+    bool keyDown;
+    XMFLOAT3 mouseMove = m_pInput->GetMouseMove();
+    int zoom = m_pInput->GetZoom();
+    m_pCamera->getMouseState(mouseMove.x, mouseMove.y, zoom);
+    keyDown = m_pInput->IsLeftPressed();
+    MoveLeft(keyDown);
+    keyDown = m_pInput->IsRightPressed();
+    MoveRight(keyDown);
+    keyDown = m_pInput->IsUpPressed();
+    MoveForward(keyDown);
+    keyDown = m_pInput->IsDownPressed();
+    MoveBackward(keyDown);
 }
 
 bool Render::getState() {
     HRESULT hr = S_OK;
     m_pCamera->getState();
-    m_pInput->getState();
 
     inputMovement();
 
@@ -283,7 +407,7 @@ bool Render::getState() {
     t = (timeCur - timeStart) / 1000.0f;
 
     WorldMatrixBuffer wmb;
-    wmb.mWorldMatrix = XMMatrixRotationY(t);
+    wmb.mWorldMatrix = XMMatrixRotationY(t) * XMMatrixTranslation(m_cubePos.x, m_cubePos.y, m_cubePos.z);
     m_pDeviceContext->UpdateSubresource(m_pWorldMatrixBuffer, 0, nullptr, &wmb, 0, 0);
 
     XMMATRIX mView;
@@ -302,7 +426,7 @@ bool Render::getState() {
         sceneBuffer.mViewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
         m_pDeviceContext->Unmap(m_pSceneMatrixBuffer, 0);
     }
-
+    m_pCubeMap->getState(m_pDeviceContext, mView, mProjection, m_pCamera->getPosition());
     return SUCCEEDED(hr);
 }
 
@@ -331,11 +455,16 @@ bool Render::render() {
     rect.bottom = m_height;
 
     m_pDeviceContext->RSSetScissorRects(1, &rect);
+    m_pCubeMap->render(m_pDeviceContext);
     m_pDeviceContext->RSSetState(m_pRasterizerState);
+    ID3D11SamplerState* samplers[] = { m_pSampler };
+    m_pDeviceContext->PSSetSamplers(0, 1, samplers);
+    ID3D11ShaderResourceView* resources[] = { m_textureArray[0].GetTexture() };
+    m_pDeviceContext->PSSetShaderResources(0, 1, resources);
     m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
     ID3D11Buffer* vBuffer[] = { m_pVertexBuffer };
-    UINT strides[] = { 16 };
+    UINT strides[] = { 20 };
     UINT offsets[] = { 0 };
 
     m_pDeviceContext->IASetVertexBuffers(0, 1, vBuffer, strides, offsets);
@@ -368,7 +497,14 @@ void Render::deviceCleanup() {
     SAFE_RELEASE(m_pWorldMatrixBuffer);
     SAFE_RELEASE(m_pSceneMatrixBuffer);
     SAFE_RELEASE(m_pInputLayout);
+    for (auto t : m_textureArray) {
+        t.Release();
+    }
+
+    m_textureArray.clear();
+    delete m_pCubeMap;
 }
+
 
 bool Render::winResize(UINT width, UINT height) {
     if (width != m_width || height != m_height) {
@@ -383,6 +519,7 @@ bool Render::winResize(UINT width, UINT height) {
 
             hr = setupBackBuffer();
             m_pInput->resize(width, height);
+            m_pCubeMap->resize(width, height);
         }
         return SUCCEEDED(hr);
     }

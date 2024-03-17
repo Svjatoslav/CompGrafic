@@ -131,7 +131,11 @@
     <FxCompile />
     <PostBuildEvent>
       <Command>copy "$(ProjectDir)VertexShader.hlsl" "$(OutDir)VertexShader.hlsl"
-copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"</Command>
+copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"
+copy "$(ProjectDir)CubeMapPixelShader.hlsl" "$(OutDir)CubeMapPixelShader.hlsl"
+copy "$(ProjectDir)CubeMapVertexShader.hlsl" "$(OutDir)CubeMapVertexShader.hlsl"
+copy "$(ProjectDir)myface.dds" "$(OutDir)myface.dds"
+copy "$(ProjectDir)panelka.dds" "$(OutDir)panelka.dds"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -158,17 +162,24 @@ copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
+    <ClInclude Include="CubeMap.h" />
+    <ClInclude Include="DDSTextureLoader.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="input.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="texture.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="WindowsProject1.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="CubeMap.cpp" />
+    <ClCompile Include="DDSTextureLoader.cpp" />
     <ClCompile Include="input.cpp" />
     <ClCompile Include="Render.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="WindowsProject1.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +201,14 @@ copy "$(ProjectDir)PixelShader.hlsl" "$(OutDir)PixelShader.hlsl"</Command>
       <FileType>Document</FileType>
       <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
     </None>
+    <FxCompile Include="CubeMapPixelShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="CubeMapVertexShader.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="VertexShader.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
