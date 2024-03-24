@@ -1,7 +1,7 @@
 ﻿// WindowsProject1.cpp : Определяет точку входа для приложения.
 //
 
-#include "framework.h"
+//#include "framework.h"
 #include "WindowsProject1.h"
 #include <windows.h>
 #include <directxcolors.h>
