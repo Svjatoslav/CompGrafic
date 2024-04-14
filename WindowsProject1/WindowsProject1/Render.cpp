@@ -2,6 +2,9 @@
 #include <d3dcompiler.h>
 #include <array>
 #include "Render.h"
+#include <chrono>
+#include <math.h>
+#include "D3DInclude.h"
 
 #define SAFE_RELEASE(p) \
 if (p != NULL) { \
@@ -14,35 +17,35 @@ float computeDistanceSqr(const XMFLOAT3 & vec1, const XMFLOAT3 & vec2);
 namespace {
 
     static const Vertex Vertices[] = {
-    { -0.5, -0.5,  0.5, 0, 1 },
-    { 0.5, -0.5,  0.5, 1, 1 },
-    { 0.5, -0.5, -0.5, 1, 0 },
-    { -0.5, -0.5, -0.5, 0, 0 },
+    {{-0.5, -0.5,  0.5}, {0,1}, {0,-1,0}, {1,0,0}},
+        {{ 0.5, -0.5,  0.5}, {1,1}, {0,-1,0}, {1,0,0}},
+        {{ 0.5, -0.5, -0.5}, {1,0}, {0,-1,0}, {1,0,0}},
+        {{-0.5, -0.5, -0.5}, {0,0}, {0,-1,0}, {1,0,0}},
 
-    { -0.5,  0.5, -0.5, 0, 1 },
-    { 0.5,  0.5, -0.5, 1, 1 },
-    { 0.5,  0.5,  0.5, 1, 0 },
-    { -0.5,  0.5,  0.5, 0, 0 },
+        {{-0.5,  0.5, -0.5}, {0,1}, {0,1,0}, {1,0,0}},
+        {{ 0.5,  0.5, -0.5}, {1,1}, {0,1,0}, {1,0,0}},
+        {{ 0.5,  0.5,  0.5}, {1,0}, {0,1,0}, {1,0,0}},
+        {{-0.5,  0.5,  0.5}, {0,0}, {0,1,0}, {1,0,0}},
 
-    { 0.5, -0.5, -0.5, 0, 1 },
-    { 0.5, -0.5,  0.5, 1, 1 },
-    { 0.5,  0.5,  0.5, 1, 0 },
-    { 0.5,  0.5, -0.5, 0, 0 },
+        {{ 0.5, -0.5, -0.5}, {0,1}, {1,0,0}, {0,0,1}},
+        {{ 0.5, -0.5,  0.5}, {1,1}, {1,0,0}, {0,0,1}},
+        {{ 0.5,  0.5,  0.5}, {1,0}, {1,0,0}, {0,0,1}},
+        {{ 0.5,  0.5, -0.5}, {0,0}, {1,0,0}, {0,0,1}},
 
-    { -0.5, -0.5,  0.5, 0, 1 },
-    { -0.5, -0.5, -0.5, 1, 1 },
-    { -0.5,  0.5, -0.5, 1, 0 },
-    { -0.5,  0.5,  0.5, 0, 0 },
+        {{-0.5, -0.5,  0.5}, {0,1}, {-1,0,0}, {0,0,-1}},
+        {{-0.5, -0.5, -0.5}, {1,1}, {-1,0,0}, {0,0,-1}},
+        {{-0.5,  0.5, -0.5}, {1,0}, {-1,0,0}, {0,0,-1}},
+        {{-0.5,  0.5,  0.5}, {0,0}, {-1,0,0}, {0,0,-1}},
 
-    { 0.5, -0.5,  0.5, 0, 1 },
-    { -0.5, -0.5,  0.5, 1, 1 },
-    { -0.5,  0.5,  0.5, 1, 0 },
-    { 0.5,  0.5,  0.5, 0, 0 },
+        {{ 0.5, -0.5,  0.5}, {0,1}, {0,0,1}, {-1,0,0}},
+        {{-0.5, -0.5,  0.5}, {1,1}, {0,0,1}, {-1,0,0}},
+        {{-0.5,  0.5,  0.5}, {1,0}, {0,0,1}, {-1,0,0}},
+        {{ 0.5,  0.5,  0.5}, {0,0}, {0,0,1}, {-1,0,0}},
 
-    { -0.5, -0.5, -0.5, 0, 1 },
-    { 0.5, -0.5, -0.5, 1, 1 },
-    { 0.5,  0.5, -0.5, 1, 0 },
-    { -0.5,  0.5, -0.5, 0, 0 }
+        {{-0.5, -0.5, -0.5}, {0,1}, {0,0,-1}, {1,0,0}},
+        {{ 0.5, -0.5, -0.5}, {1,1}, {0,0,-1}, {1,0,0}},
+        {{ 0.5,  0.5, -0.5}, {1,0}, {0,0,-1}, {1,0,0}},
+        {{-0.5,  0.5, -0.5}, {0,0}, {0,0,-1}, {1,0,0}},
     };
 
     static const USHORT Indices[] = {
@@ -118,7 +121,10 @@ HRESULT Render::initScene() {
 
     static const D3D11_INPUT_ELEMENT_DESC InputDesc[] = {
       {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-     {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0} };
+      {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    {"TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0},
+    };
 
 
     if (SUCCEEDED(hr)) {
@@ -166,13 +172,13 @@ HRESULT Render::initScene() {
 #ifdef _DEBUG
     flags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-
+    D3DInclude includeObj;
     if (SUCCEEDED(hr)) {
-        hr = D3DCompileFromFile(L"VertexShader.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &VertexShaderBuffer, NULL);
+        hr = D3DCompileFromFile(L"VertexShader.hlsl", NULL, &includeObj, "main", "vs_5_0", flags, 0, &VertexShaderBuffer, NULL);
         hr = m_pDevice->CreateVertexShader(VertexShaderBuffer->GetBufferPointer(), VertexShaderBuffer->GetBufferSize(), NULL, &m_pVertexShader);
     }
     if (SUCCEEDED(hr)) {
-        hr = D3DCompileFromFile(L"PixelShader.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &PixelShaderBuffer, NULL);
+        hr = D3DCompileFromFile(L"PixelShader.hlsl", NULL, &includeObj, "main", "ps_5_0", flags, 0, &PixelShaderBuffer, NULL);
         hr = m_pDevice->CreatePixelShader(PixelShaderBuffer->GetBufferPointer(), PixelShaderBuffer->GetBufferSize(), NULL, &m_pPixelShader);
     }
     if (SUCCEEDED(hr)) {
@@ -236,9 +242,73 @@ HRESULT Render::initScene() {
     }
     try {
         m_textureArray.emplace_back(m_pDevice, m_pDeviceContext, L"myface1.dds");
+        m_textureArray.emplace_back(m_pDevice, m_pDeviceContext, L"brick_normal.dds");
+
+        m_pLights = std::make_shared<Lights>();
+
+        m_pLights->Add(
+            {
+              XMFLOAT4(1.0f, 0.0f, -2.0f, -2.0f),
+              XMFLOAT4(1.0f, 0.0f, 0.0f, 0.0f)
+            });
+        m_pLights->Add(
+            {
+              XMFLOAT4(0.0f, 1.0f, -2.0f, -2.0f),
+              XMFLOAT4(2.0f, 0.5f, 1.0f, 0.0f)
+            });
+        m_pLights->Add(
+            {
+              XMFLOAT4(2.0f, 0.0f, -2.0f, -2.0f),
+              XMFLOAT4(1.0f, 0.5f, 2.0f, 0.0f)
+            });
+        m_pLights->Add(
+            {
+              XMFLOAT4(0.0f, -1.0f, 2.0f, -2.0f),
+              XMFLOAT4(1.0f, 1.5f, 0.0f, 0.0f)
+            });
+        m_pLights->Add(
+            {
+                XMFLOAT4(2.0f, 2.0f, 0.0f, 0.0f),
+                XMFLOAT4(2.0f, 0.5f, 1.0f, 0.0f)
+            });
+        m_pLights->Add(
+            {
+                XMFLOAT4(1.0f, 1.0f, 0.0f, 2.0f),
+                XMFLOAT4(0.5f, 0.5f, 1.0f, 0.0f)
+            });
     }
     catch (...) {
         return E_FAIL;
+    }
+    if (SUCCEEDED(hr)) {
+        D3D11_BUFFER_DESC desc = {};
+        desc.ByteWidth = sizeof(LightMatrixBuffer);
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        desc.CPUAccessFlags = 0;
+        desc.MiscFlags = 0;
+        desc.StructureByteStride = 0;
+
+        LightMatrixBuffer lightMatrixBuffer;
+
+        lightMatrixBuffer.lightCount[0] = static_cast<int>(m_pLights->GetNumber());
+        lightMatrixBuffer.lightCount[1] = 1;
+        lightMatrixBuffer.lightCount[2] = 0;
+        auto lightPositions = m_pLights->GetPositions();
+        std::copy(lightPositions.begin(), lightPositions.end(), lightMatrixBuffer.lightPositions);
+        auto lightColors = m_pLights->GetColors();
+        std::copy(lightColors.begin(), lightColors.end(), lightMatrixBuffer.lightColors);
+
+        lightMatrixBuffer.ambientColor = ambientColor_;
+
+
+        D3D11_SUBRESOURCE_DATA data;
+        data.pSysMem = &lightMatrixBuffer;
+        data.SysMemPitch = sizeof(lightMatrixBuffer);
+        data.SysMemSlicePitch = 0;
+
+        hr = m_pDevice->CreateBuffer(&desc, &data, &m_pLightMatrixBuffer);
+        assert(SUCCEEDED(hr));
     }
 
     if (SUCCEEDED(hr)) {
@@ -314,13 +384,13 @@ HRESULT Render::initScene() {
 #ifdef _DEBUG
     tflags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-
+    D3D_SHADER_MACRO Shader_Macros[] = { {"USE_LIGHTS"}, {NULL, NULL} };
     if (SUCCEEDED(hr)) {
-        hr = D3DCompileFromFile(L"TVertexShader.hlsl", NULL, NULL, "main", "vs_5_0", flags, 0, &transVertexShaderBuffer, NULL);
+        hr = D3DCompileFromFile(L"TVertexShader.hlsl", NULL, &includeObj, "main", "vs_5_0", flags, 0, &transVertexShaderBuffer, NULL);
         hr = m_pDevice->CreateVertexShader(transVertexShaderBuffer->GetBufferPointer(), transVertexShaderBuffer->GetBufferSize(), NULL, &m_pTransparentVertexShader);
     }
     if (SUCCEEDED(hr)) {
-        hr = D3DCompileFromFile(L"TPixelShader.hlsl", NULL, NULL, "main", "ps_5_0", flags, 0, &transPixelShaderBuffer, NULL);
+        hr = D3DCompileFromFile(L"TPixelShader.hlsl", Shader_Macros, &includeObj, "main", "ps_5_0", flags, 0, &transPixelShaderBuffer, NULL);
         hr = m_pDevice->CreatePixelShader(transPixelShaderBuffer->GetBufferPointer(), transPixelShaderBuffer->GetBufferSize(), NULL, &m_pTransparentPixelShader);
     }
     if (SUCCEEDED(hr)) {
@@ -614,18 +684,16 @@ bool Render::getState() {
         timeStart = timeCur;
     }
     t = (timeCur - timeStart) / 1000.0f;
-
+    std::size_t countSec = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() - timeCur;
     WorldMatrixBuffer wmb;
     wmb.mWorldMatrix = DirectX::XMMatrixMultiply(
         DirectX::XMMatrixRotationY(t),
         DirectX::XMMatrixTranslation(0.0f, 0.0f, -1.0f));
     m_pDeviceContext->UpdateSubresource(m_pWorldMatrixBuffer, 0, NULL, &wmb, 0, 0);
 
-    wmb.mWorldMatrix = DirectX::XMMatrixMultiply(
-        DirectX::XMMatrixRotationY(-t),
-        DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f));
+    wmb.mWorldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, 1.0f);
     m_pDeviceContext->UpdateSubresource(m_pWorldMatrixBuffer1, 0, NULL, &wmb, 0, 0);
-
+    wmb.shine.x = 1000.0f;
 
     TransparentWorldBuffer transparentWorldBuffer;
     transparentWorldBuffer.worldMatrix = DirectX::XMMatrixTranslation(0.0f, 0.0f, -0.1f);
@@ -649,13 +717,17 @@ bool Render::getState() {
     D3D11_MAPPED_SUBRESOURCE subresource;
     hr = m_pDeviceContext->Map(m_pSceneMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &subresource);
     assert(SUCCEEDED(hr));
+    const auto pov = m_pCamera->getPosition();
     if (SUCCEEDED(hr)) {
         SceneMatrixBuffer& sceneBuffer = *reinterpret_cast<SceneMatrixBuffer*>(subresource.pData);
         sceneBuffer.mViewProjectionMatrix = XMMatrixMultiply(mView, mProjection);
+        sceneBuffer.cameraPosition.x = pov.x;
+        sceneBuffer.cameraPosition.y = pov.y;
+        sceneBuffer.cameraPosition.z = pov.z;
         m_pDeviceContext->Unmap(m_pSceneMatrixBuffer, 0);
         m_pDeviceContext->UpdateSubresource(m_pTransparentSceneBuffer, 0, NULL, &sceneBuffer, 0, 0);
     }
-    m_pCubeMap->getState(m_pDeviceContext, mView, mProjection, m_pCamera->getPosition());
+    m_pCubeMap->getState(m_pDeviceContext, mView, mProjection, pov);
     return SUCCEEDED(hr);
 }
 
@@ -690,13 +762,13 @@ bool Render::render() {
     m_pDeviceContext->OMSetDepthStencilState(m_pDepthState, 0);
     ID3D11SamplerState* samplers[] = { m_pSampler };
     m_pDeviceContext->PSSetSamplers(0, 1, samplers);
-    ID3D11ShaderResourceView* resources[] = { m_textureArray[0].GetTexture() };
-    m_pDeviceContext->PSSetShaderResources(0, 1, resources);
+    ID3D11ShaderResourceView* resources[] = { m_textureArray[0].GetTexture(), m_textureArray[1].GetTexture()};
+    m_pDeviceContext->PSSetShaderResources(0, 2, resources);
     m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 
     ID3D11Buffer* vBuffer1[] = { m_pVertexBuffer };
-    UINT strides1[] = { 20 };
+    UINT strides1[] = { sizeof(Vertex) };
     UINT offsets1[] = { 0 };
   
     m_pDeviceContext->IASetVertexBuffers(0, 1, vBuffer1, strides1, offsets1);
@@ -705,6 +777,9 @@ bool Render::render() {
     m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
     m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pWorldMatrixBuffer);
     m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pSceneMatrixBuffer);
+    m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pWorldMatrixBuffer);
+    m_pDeviceContext->PSSetConstantBuffers(1, 1, &m_pSceneMatrixBuffer);
+    m_pDeviceContext->PSSetConstantBuffers(2, 1, &m_pLightMatrixBuffer);
     m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
     m_pDeviceContext->DrawIndexed(36, 0, 0);
 
@@ -735,7 +810,7 @@ bool Render::render() {
     m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pTransparentSceneBuffer);
     m_pDeviceContext->PSSetShader(m_pTransparentPixelShader, NULL, 0);
     m_pDeviceContext->DrawIndexed(static_cast<UINT>(coloredPlaneIndices.size()), 0, 0);
-
+    m_pDeviceContext->PSSetConstantBuffers(2, 1, &m_pLightMatrixBuffer);
     m_pDeviceContext->VSSetConstantBuffers(0, 1, &m_pTransparentWorldBuffer1);
     m_pDeviceContext->PSSetConstantBuffers(0, 1, &m_pTransparentWorldBuffer1);
     m_pDeviceContext->DrawIndexed(static_cast<UINT>(coloredPlaneIndices.size()), 0, 0);
@@ -813,6 +888,7 @@ void Render::deviceCleanup() {
 
     SAFE_RELEASE(m_pDepthBuffer);
     SAFE_RELEASE(m_pDepthBufferDSV);
+    SAFE_RELEASE(m_pLightMatrixBuffer);
     for (auto t : m_textureArray) {
         t.Release();
     }

@@ -1,13 +1,11 @@
+#include "sceneBuffer.hlsli"
+
 cbuffer WorldBuffer : register (b0)
 {
 	float4x4 world;
 	float4 color;
 };
 
-cbuffer SceneBuffer : register (b1)
-{
-	float4x4 viewProj;
-};
 
 struct VSInput
 {
@@ -17,12 +15,13 @@ struct VSInput
 struct VSOutput
 {
 	float4 position : SV_Position;
+	float4 worldPos : POSITION;
 };
 
 VSOutput main(VSInput input)
 {
 	VSOutput output;
-	output.position = mul(viewProj, mul(world, float4(input.position, 1.0f)));
-
+	output.worldPos = mul(world, float4(input.position, 1.0f));
+	output.position = mul(viewProj, output.worldPos);
 	return output;
 }
