@@ -48,6 +48,12 @@
     <ClInclude Include="utils.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="D3DInclude.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="lights.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WindowsProject1.cpp">
@@ -69,6 +75,12 @@
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="texture.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="D3DInclude.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="lights.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
@@ -94,5 +106,9 @@
     <FxCompile Include="TVertexShader.hlsl" />
     <FxCompile Include="TPixelShader.hlsl" />
     <FxCompile Include="PixelShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="calcLight.hlsli" />
+    <None Include="sceneBuffer.hlsli" />
   </ItemGroup>
 </Project>
