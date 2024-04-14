@@ -16,12 +16,27 @@ struct Vertex {
 	float u, v;
 };
 
+struct AuxRect {
+	XMFLOAT3 v[4];
+};
+
 struct WorldMatrixBuffer {
 	XMMATRIX mWorldMatrix;
 };
 
 struct SceneMatrixBuffer {
 	XMMATRIX mViewProjectionMatrix;
+};
+
+struct TransparentWorldBuffer
+{
+	DirectX::XMMATRIX worldMatrix;
+	DirectX::XMFLOAT4 color;
+};
+
+struct VertexPos
+{
+	float x, y, z;
 };
 
 class Render {
@@ -39,9 +54,27 @@ private:
 	ID3D11InputLayout* m_pInputLayout = nullptr;
 
 	ID3D11Buffer* m_pWorldMatrixBuffer = nullptr;
+	ID3D11Buffer* m_pWorldMatrixBuffer1 = nullptr;
 	ID3D11Buffer* m_pSceneMatrixBuffer = nullptr;
 	ID3D11RasterizerState* m_pRasterizerState = nullptr;
 	ID3D11SamplerState* m_pSampler = nullptr;
+
+	ID3D11DepthStencilState* m_pDepthState = nullptr;
+
+	ID3D11VertexShader* m_pTransparentVertexShader = nullptr;
+	ID3D11PixelShader* m_pTransparentPixelShader = nullptr;
+	ID3D11InputLayout* m_pTransparentInputLayout = nullptr;
+	ID3D11Buffer* m_pTransparentVertexBuffer = nullptr;
+	ID3D11Buffer* m_pTransparentIndexBuffer = nullptr;
+	ID3D11Buffer* m_pTransparentWorldBuffer = nullptr;
+	ID3D11Buffer* m_pTransparentWorldBuffer1 = nullptr;
+	ID3D11Buffer* m_pTransparentSceneBuffer = nullptr;
+	ID3D11RasterizerState* m_pTransparentRasterizerState = nullptr;
+	ID3D11DepthStencilState* m_pTransparentDepthState = nullptr;
+	ID3D11BlendState* m_pTransparentBlendState = nullptr;
+
+	ID3D11Texture2D* m_pDepthBuffer = nullptr;
+	ID3D11DepthStencilView* m_pDepthBufferDSV = nullptr;
 
 	UINT m_width = 1280;
 	UINT m_height = 720;
@@ -58,6 +91,7 @@ private:
 	float m_rightSpeed = 0.0f;
 	float m_frameMove = 0.001f;
 	XMFLOAT3 m_cubePos = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	AuxRect aux_rects[2];
 
 	HRESULT setupBackBuffer();
 	HRESULT initScene();
